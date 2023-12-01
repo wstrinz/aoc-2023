@@ -39,7 +39,7 @@ digitsAndWordDigits = \state, character ->
 
 
 firstAndListDigitsString = \digits ->
-    first = List.get digits 0
+    first = List.first digits
     last = List.last digits
 
     [first, last]
