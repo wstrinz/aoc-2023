@@ -1,5 +1,5 @@
 app "aoc23-day1"
-    packages { pf: "https://github.com/roc-lang/basic-cli/releases/download/0.5.0/Cufzl36_SnJ4QbOoEmiJ5dIpUxBvdB3NEySvuH82Wio.tar.br" }
+    packages { pf: "https://github.com/roc-lang/basic-cli/releases/download/0.7.0/bkGby8jb0tmZYsy2hg1E_B2QrCgcSTxdUlHtETwm5m4.tar.br" }
     imports [
         pf.Stdout,
         "day1.txt" as input : Str,
@@ -25,6 +25,9 @@ wordDigitFor = \current, character ->
     |> Result.map (\(_, digit) -> digit)
 
 digitsAndWordDigits = \state, character ->
+    dbg
+        state
+
     when Str.toNat character is
         Ok digit ->
             { state & digits: List.append state.digits digit, current: [] }
@@ -36,7 +39,6 @@ digitsAndWordDigits = \state, character ->
 
                 Err _ ->
                     { state & current: List.append state.current character }
-
 
 firstAndListDigitsString = \digits ->
     first = List.first digits
@@ -92,8 +94,8 @@ part2 =
 
     result
 
-expect wordDigitFor ["e","i","g","h","t","h","r","e"] "e" == Ok 3
-expect digitsAndWordDigits { current: ["e","i","g","h","t","h","r","e"], digits: [] } "e" == { current: ["e","i","g","h","t","h","r","e", "e"], digits: [3] }
+expect wordDigitFor ["e", "i", "g", "h", "t", "h", "r", "e"] "e" == Ok 3
+expect digitsAndWordDigits { current: ["e", "i", "g", "h", "t", "h", "r", "e"], digits: [] } "e" == { current: ["e", "i", "g", "h", "t", "h", "r", "e", "e"], digits: [3] }
 
 main =
     results =
