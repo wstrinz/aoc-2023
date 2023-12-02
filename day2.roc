@@ -6,14 +6,13 @@ app "aoc23-day2"
     ]
     provides [main] to pf
 
-
 Turn : (Nat, Str)
 
 Round : List Turn
 
-Game : { gameId: Nat, rounds: List Round }
+Game : { gameId : Nat, rounds : List Round }
 
-Condition : { conditionColor: Str, conditionCount: Nat }
+Condition : { conditionColor : Str, conditionCount : Nat }
 
 gameIsPossible : Game, List Condition -> Bool
 gameIsPossible = \game, conditions ->
@@ -24,9 +23,8 @@ gameIsPossible = \game, conditions ->
             |> List.all \(turnCount, turnColor) ->
                 turnColor != conditionColor || turnCount <= conditionCount
 
-
-findMaxColorCount : Str, Game -> Nat
-findMaxColorCount = \color, {rounds} ->
+findMaxColorCount : Str, Game -> Result Nat _
+findMaxColorCount = \color, { rounds } ->
     rounds
     |> List.map \round ->
         round
@@ -36,7 +34,7 @@ findMaxColorCount = \color, {rounds} ->
             turnCount
         |> List.max
         |> Result.withDefault 0
-    |> List.max |> Result.withDefault 0
+    |> List.max
 
 parseRound = \round ->
     round
@@ -70,58 +68,71 @@ parseGame = \line ->
 
             when (gameId, roundDetails) is
                 (Ok gameIdNum, Ok parsedRounds) ->
-                    {gameId: gameIdNum, rounds: parsedRounds}
+                    { gameId: gameIdNum, rounds: parsedRounds }
 
                 _ ->
-                    dbg gameId
+                    dbg
+                        gameId
 
                     crash "failed game id parse"
 
         otherwise ->
-            dbg otherwise
+            dbg
+                otherwise
 
             crash "failed game parse"
 
 part2 =
-    games : List Game
     games =
-      input
-      |> Str.split "\n"
-      |> List.map parseGame
+        input
+        |> Str.split "\n"
+        |> List.map parseGame
 
-    maxValues =
-        List.map games \game ->
-            maxColors =
-                ["red", "blue", "green"]
-                    |> List.map \color ->
-                        findMaxColorCount color game
+    listProduct : List Nat -> Nat
+    listProduct = \list ->
+        List.walk list 0 \state, count ->
+            if state == 0 then
+                count
+            else
+                state * count
 
-            List.walk maxColors 0 \state, maxColor ->
-                if state == 0 then
-                    maxColor
-                else
-                    state * maxColor
+    result =
+        List.mapTry games \game ->
+            ["red", "blue", "green"]
+            |> List.mapTry \color ->
+                findMaxColorCount color game
+            |> Result.map listProduct
+        |> Result.map List.sum
 
-    sum = List.sum maxValues
+    when result is
+        Ok sum ->
+            expect
+                sum == 67363
 
-    Num.toStr sum
+            Num.toStr sum
+
+        Err err ->
+            dbg
+                err
+
+            "Failed to find max color count in part 2!"
 
 part1 =
     games =
-      input
-      |> Str.split "\n"
-      |> List.map parseGame
+        input
+        |> Str.split "\n"
+        |> List.map parseGame
 
     possibleGames =
         List.keepIf games \game ->
             gameIsPossible game [
-                {conditionColor: "red", conditionCount: 12},
-                {conditionColor: "blue", conditionCount: 14},
-                {conditionColor: "green", conditionCount: 13},
+                { conditionColor: "red", conditionCount: 12 },
+                { conditionColor: "blue", conditionCount: 14 },
+                { conditionColor: "green", conditionCount: 13 },
             ]
 
-    possibleSums
-        = possibleGames
+    possibleSums =
+        possibleGames
         |> List.map .gameId
         |> List.sum
 
