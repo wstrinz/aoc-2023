@@ -119,21 +119,15 @@ part1 =
     parsedInput =
         parseInput
 
-    pointsAround =
+    result =
         parsedInput.numberMap
         |> Dict.toList
         |> List.map \(startPoint, number) -> (number, pointsAroundNumber number startPoint)
-
-    numbersBySymbols =
-        pointsAround
         |> List.keepIf \(_, points) ->
             points
             |> Set.toList
             |> List.any \point -> Dict.contains parsedInput.symbolMap point
         |> List.map \(number, _) -> number
-
-    result =
-        numbersBySymbols
         |> List.keepOks Str.toNat
         |> List.sum
 
@@ -156,35 +150,29 @@ part2 =
 
             (number, allPoints)
 
-    asteriskPoints =
+    validGears =
         parsedInput.symbolMap
         |> Dict.toList
         |> List.keepIf \(_, symbol) -> symbol == "*"
         |> List.map \(point, _) -> point
+        |> List.map \gearPoint ->
+            pointsAroundGear = pointsAroundPoint gearPoint
 
-    asteriskPointsAndNumbersAdjacency =
-        asteriskPoints
-        |> List.map \asteriskPoint ->
-            pointsAround = pointsAroundPoint asteriskPoint
-
-            numberPointsAround =
+            numbersAroundGear =
                 allNumbersPoints
                 |> List.keepIf \(_, allPoints) ->
                     allPoints
-                    |> List.any \point -> Set.contains pointsAround point
+                    |> List.any \point -> Set.contains pointsAroundGear point
 
-            (asteriskPoint, numberPointsAround)
-
-    validGears =
-        asteriskPointsAndNumbersAdjacency
-        |> List.keepIf \(_, numberPointsAround) -> List.len numberPointsAround == 2
+            (gearPoint, numbersAroundGear)
+        |> List.keepIf \(_, numbersAroundGear) -> List.len numbersAroundGear == 2
 
     expect result == 72514855
 
     result =
         validGears
-        |> List.map \(_, numberPointsAround) ->
-            numberPointsAround
+        |> List.map \(_, numbersAroundGear) ->
+            numbersAroundGear
             |> List.map \(number, _) -> number
             |> List.keepOks Str.toNat
             |> List.walk 1 Num.mul
