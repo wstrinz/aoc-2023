@@ -57,54 +57,44 @@ parseInput =
 
             crash "Invalid input"
 
-findLocation : Nat, List AgriMap, Dict Nat Nat -> (Nat, Dict Nat Nat)
-findLocation = \seed, maps, seedCache ->
-    when Dict.get seedCache seed is
-        Ok cachedSeed ->
-            (cachedSeed, seedCache)
+findLocation : Nat, List AgriMap -> Nat
+findLocation = \seed, maps ->
+    mapFor = \destination ->
+        List.findFirst maps \map ->
+            map.destination == destination
+        |> Result.map \r ->
+            r.map
+        |> Result.withDefault []
 
-        _ ->
-            mapFor = \destination ->
-                List.findFirst maps \map ->
-                    map.destination == destination
-                |> Result.map \r ->
-                    r.map
-                |> Result.withDefault []
-
-            lookup = \number, mapDest ->
-                mapFor mapDest
-                |> List.findFirst \map ->
-                    map.srcStart <= number && number < map.srcStart + map.length
-                |> Result.map \entry ->
-                    entry.destStart + (number - entry.srcStart)
-                |> Result.withDefault number
+    lookup = \number, mapDest ->
+        mapFor mapDest
+        |> List.findFirst \map ->
+            map.srcStart <= number && number < map.srcStart + map.length
+        |> Result.map \entry ->
+            entry.destStart + (number - entry.srcStart)
+        |> Result.withDefault number
 
 
 
-            result =
-                lookup seed "soil"
-                |> lookup "fertilizer"
-                |> lookup "water"
-                |> lookup "light"
-                |> lookup "temperature"
-                |> lookup "humidity"
-                |> lookup "location"
+    result =
+        lookup seed "soil"
+        |> lookup "fertilizer"
+        |> lookup "water"
+        |> lookup "light"
+        |> lookup "temperature"
+        |> lookup "humidity"
+        |> lookup "location"
 
-            (result, Dict.insert seedCache seed result )
+    result
 
 part1 =
     parsedInput = parseInput
 
-    (_, finalSeedDict) =
+    result =
         parsedInput
         |> \(seeds, maps) ->
-            seeds |> List.walk (0, Dict.empty {}) \(_, seedDict), seed ->
-                findLocation seed maps seedDict
-
-
-    result =
-        Dict.toList finalSeedDict
-        |> List.map .1
+            seeds |> List.map \seed ->
+                findLocation seed maps
         |> List.min
 
     dbg result
@@ -114,31 +104,48 @@ part1 =
 part2 =
     parsedInput = parseInput
 
+    nDrops = 6
+
+    dbg "Dropping \(nDrops |> Num.toStr) seeds"
+    
     seedLocations =
         parsedInput
         |> \(seeds, maps) ->
             seeds
             |> List.chunksOf 2
+            |> List.dropFirst nDrops
+            |> List.takeFirst 1
             |> List.map \seedChunk ->
                 foo = "bar"
 
                 [start, length, _] = seedChunk
 
-                dbg (start, length)
+                loc =
+                    List.range { start: At start, end: Length length  }
+                    |> List.map \seed ->
+                        findLocation seed maps
+                    |> List.min
 
-                List.range { start: At start, end: Length length  }
-                |> List.walk (0, Dict.empty {}) \(_, seedDict), seed ->
-                    findLocation seed maps seedDict
-        |> List.map .1
+                when loc is
+                    Ok min ->
+                        dbg (start, min)
 
+                        min
+
+                    otherwise ->
+                        dbg otherwise
+
+                        crash "Invalid min"
 
     dbg seedLocations
+
+    dbg List.min seedLocations
 
     "part2"
 
 main =
     results =
-        [part1, part2]
+        [part2]
         |> Str.joinWith ", "
 
     Stdout.line "Done!\n\(results)"
