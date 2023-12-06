@@ -6,9 +6,7 @@ app "aoc23-day6"
     ]
     provides [main] to pf
 
-
 solveQuadratic = \aNum, bNum, cNum ->
-
     a = aNum |> Num.toF64
     b = bNum |> Num.toF64
     c = cNum |> Num.toF64
@@ -42,10 +40,9 @@ parseInput =
             |> Str.split " "
             |> List.keepOks Str.toNat
 
-    List.map2 times distances \time, distance -> {time, distance}
+    List.map2 times distances \time, distance -> { time, distance }
 
-
-findNumHoldtimes = \{time, distance} ->
+findNumHoldtimes = \{ time, distance } ->
     roots = solveQuadratic 1 time distance
 
     when roots is
@@ -63,7 +60,6 @@ findNumHoldtimes = \{time, distance} ->
 
                 (roundedMax - roundedMin) + 1
 
-# time * (duration - time) >= distance
 part1 =
     parsedInput = parseInput
 
@@ -71,12 +67,27 @@ part1 =
 
     result = holdTimes |> List.walk 1 Num.mul
 
-    dbg result
+    expect result == 505494
 
-    "part1"
+    Num.toStr result
 
 part2 =
-    "part2"
+    parsedInput =
+        parseInput
+        |> List.walk ("", "") \(timeAcc, distAcc), { time, distance } ->
+
+            (Str.joinWith [timeAcc, Num.toStr time] "", Str.joinWith [distAcc, Num.toStr distance] "")
+
+    result =
+        {
+            time: Str.toNat parsedInput.0 |> Result.withDefault 0,
+            distance: Str.toNat parsedInput.1 |> Result.withDefault 0,
+        }
+        |> findNumHoldtimes
+
+    expect result == 23632299
+
+    Num.toStr result
 
 main =
     results =
