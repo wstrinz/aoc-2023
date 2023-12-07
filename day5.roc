@@ -104,17 +104,11 @@ part1 =
 part2 =
     parsedInput = parseInput
 
-    nDrops = 6
-
-    dbg "Dropping \(nDrops |> Num.toStr) seeds"
-    
     seedLocations =
         parsedInput
         |> \(seeds, maps) ->
             seeds
             |> List.chunksOf 2
-            |> List.dropFirst nDrops
-            |> List.takeFirst 1
             |> List.map \seedChunk ->
                 foo = "bar"
 
@@ -136,8 +130,6 @@ part2 =
                         dbg otherwise
 
                         crash "Invalid min"
-
-    dbg seedLocations
 
     dbg List.min seedLocations
 
